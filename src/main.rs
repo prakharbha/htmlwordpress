@@ -19,11 +19,6 @@ use axum::{
 use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-#[derive(Clone)]
-pub struct AppState {
-    pub api_key: Option<String>,
-}
-
 #[tokio::main]
 async fn main() {
     // Initialize logging
@@ -40,7 +35,7 @@ async fn main() {
 
     tracing::info!("Starting HTMLWordPress API on {}", config.address());
 
-    let state = AppState {
+    let state = config::AppState {
         api_key: config.api_key.clone(),
     };
 

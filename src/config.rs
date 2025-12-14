@@ -8,10 +8,16 @@ pub struct Config {
     pub api_key: Option<String>,
 }
 
+#[derive(Clone)]
+pub struct AppState {
+    pub api_key: Option<String>,
+}
+
 impl Config {
     pub fn from_env() -> Self {
         Self {
             host: env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
+            port: env::var("PORT")
                 .ok()
                 .and_then(|p| p.parse().ok())
                 .unwrap_or(3000),

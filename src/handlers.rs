@@ -8,7 +8,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 
 use crate::error::AppError;
-use crate::main::AppState;
+use crate::config::AppState;
 use crate::optimizer;
 
 /// Health check response
