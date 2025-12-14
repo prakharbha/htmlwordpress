@@ -16,13 +16,15 @@ use crate::optimizer;
 pub struct HealthResponse {
     status: String,
     version: String,
+    auth_enabled: bool,
 }
 
 /// Health check endpoint
-pub async fn health() -> impl IntoResponse {
+pub async fn health(State(state): State<AppState>) -> impl IntoResponse {
     Json(HealthResponse {
         status: "ok".to_string(),
         version: env!("CARGO_PKG_VERSION").to_string(),
+        auth_enabled: state.api_key.is_some(),
     })
 }
 
@@ -162,6 +164,9 @@ pub async fn optimize(
         if auth_header != format!("Bearer {}", key) {
             return Err(AppError::Unauthorized);
         }
+    } else {
+        tracing::error!("Security Error: No API Key configured on server");
+        return Err(AppError::Internal("Server misconfiguration: API_KEY must be set".to_string()));
     }
 
     if req.html.is_empty() {
@@ -309,6 +314,9 @@ pub async fn optimize_bulk(
         if auth_header != format!("Bearer {}", key) {
             return Err(AppError::Unauthorized);
         }
+    } else {
+        tracing::error!("Security Error: No API Key configured on server");
+        return Err(AppError::Internal("Server misconfiguration: API_KEY must be set".to_string()));
     }
 
     let mut results = Vec::new();
