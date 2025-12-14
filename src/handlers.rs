@@ -1,9 +1,14 @@
 //! API Handlers
 
-use axum::{extract::Json, response::IntoResponse};
+use axum::{
+    extract::{Json, State},
+    http::{HeaderMap, StatusCode},
+    response::IntoResponse,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::error::AppError;
+use crate::main::AppState;
 use crate::optimizer;
 
 /// Health check response
@@ -143,8 +148,22 @@ pub struct JsFileData {
 
 /// Single page optimization
 pub async fn optimize(
+    State(state): State<AppState>,
+    headers: HeaderMap,
     Json(req): Json<OptimizeRequest>,
 ) -> Result<Json<OptimizeResponse>, AppError> {
+    // Check API Key
+    if let Some(ref key) = state.api_key {
+        let auth_header = headers
+            .get("Authorization")
+            .and_then(|h| h.to_str().ok())
+            .unwrap_or("");
+        
+        if auth_header != format!("Bearer {}", key) {
+            return Err(AppError::Unauthorized);
+        }
+    }
+
     if req.html.is_empty() {
         return Err(AppError::BadRequest("HTML is required".to_string()));
     }
@@ -276,8 +295,22 @@ pub struct BulkOptimizeResponse {
 
 /// Bulk optimization endpoint
 pub async fn optimize_bulk(
+    State(state): State<AppState>,
+    headers: HeaderMap,
     Json(req): Json<BulkOptimizeRequest>,
 ) -> Result<Json<BulkOptimizeResponse>, AppError> {
+    // Check API Key
+    if let Some(ref key) = state.api_key {
+        let auth_header = headers
+            .get("Authorization")
+            .and_then(|h| h.to_str().ok())
+            .unwrap_or("");
+        
+        if auth_header != format!("Bearer {}", key) {
+            return Err(AppError::Unauthorized);
+        }
+    }
+
     let mut results = Vec::new();
     let mut total_original = 0usize;
     let mut total_optimized = 0usize;

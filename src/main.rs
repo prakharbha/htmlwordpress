@@ -19,6 +19,11 @@ use axum::{
 use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+#[derive(Clone)]
+pub struct AppState {
+    pub api_key: Option<String>,
+}
+
 #[tokio::main]
 async fn main() {
     // Initialize logging
@@ -35,6 +40,10 @@ async fn main() {
 
     tracing::info!("Starting HTMLWordPress API on {}", config.address());
 
+    let state = AppState {
+        api_key: config.api_key.clone(),
+    };
+
     // Build router
     let app = Router::new()
         .route("/health", get(handlers::health))
@@ -46,7 +55,8 @@ async fn main() {
                 .allow_origin(Any)
                 .allow_methods(Any)
                 .allow_headers(Any),
-        );
+        )
+        .with_state(state);
 
     // Start server
     let listener = tokio::net::TcpListener::bind(config.address())
