@@ -1,0 +1,7 @@
+target/
+Cargo.lock.preserved
+.git
+.env
+.DS_Store
+node_modules/
+wp-content/
