@@ -1,0 +1,246 @@
+warning: unused import: `StatusCode`
+ --> src/handlers.rs:5:23
+  |
+5 |     http::{HeaderMap, StatusCode},
+  |                       ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `minify_css`
+ --> src/optimizer.rs:7:42
+  |
+7 | use crate::css_optimizer::{CssOptimizer, minify_css};
+  |                                          ^^^^^^^^^^
+
+warning: unused import: `add_alt_tags`
+ --> src/optimizer.rs:8:42
+  |
+8 | use crate::seo_optimizer::{SeoOptimizer, add_alt_tags};
+  |                                          ^^^^^^^^^^^^
+
+warning: unused import: `MinifyOptions`
+ --> src/css_optimizer.rs:6:59
+  |
+6 | use lightningcss::stylesheet::{StyleSheet, ParserOptions, MinifyOptions, PrinterOptions};
+  |                                                           ^^^^^^^^^^^^^
+
+warning: unused import: `lightningcss::rules::CssRule`
+ --> src/css_optimizer.rs:7:5
+  |
+7 | use lightningcss::rules::CssRule;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> src/seo_optimizer.rs:5:5
+  |
+5 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ImageError`
+ --> src/webp_converter.rs:5:40
+  |
+5 | use image::{DynamicImage, ImageFormat, ImageError};
+  |                                        ^^^^^^^^^^
+
+warning: unused imports: `Engine as _` and `engine::general_purpose::STANDARD as BASE64`
+ --> src/resource_optimizer.rs:4:14
+  |
+4 | use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
+  |              ^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `MinifyOptions` and `targets::Targets`
+ --> src/resource_optimizer.rs:6:45
+  |
+6 |     stylesheet::{StyleSheet, ParserOptions, MinifyOptions, PrinterOptions},
+  |                                             ^^^^^^^^^^^^^
+7 |     targets::Targets,
+  |     ^^^^^^^^^^^^^^^^
+
+warning: unused variable: `used_selectors`
+   --> src/resource_optimizer.rs:173:59
+    |
+173 | pub async fn optimize_css_file(url: &str, base_url: &str, used_selectors: &[String], minify: bool) -> Result<OptimizedCssFile, String> {
+    |                                                           ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_used_selectors`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `html`
+   --> src/css_optimizer.rs:332:51
+    |
+332 |     pub fn extract_critical_css(&self, css: &str, html: &str) -> Result<CssResult, String> {
+    |                                                   ^^^^ help: if this is intentional, prefix it with an underscore: `_html`
+
+warning: unused variable: `html`
+   --> src/resource_optimizer.rs:304:45
+    |
+304 | pub fn extract_critical_css(full_css: &str, html: &str) -> String {
+    |                                             ^^^^ help: if this is intentional, prefix it with an underscore: `_html`
+
+warning: field `remove_unused_css` is never read
+  --> src/handlers.rs:49:9
+   |
+41 | pub struct OptimizeOptions {
+   |            --------------- field in this struct
+...
+49 |     pub remove_unused_css: bool,
+   |         ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: function `default_level` is never used
+  --> src/handlers.rs:78:4
+   |
+78 | fn default_level() -> String {
+   |    ^^^^^^^^^^^^^
+
+warning: struct `CssResult` is never constructed
+  --> src/css_optimizer.rs:10:12
+   |
+10 | pub struct CssResult {
+   |            ^^^^^^^^^
+
+warning: associated items `with_selectors` and `extract_critical_css` are never used
+   --> src/css_optimizer.rs:112:12
+    |
+31  | impl CssOptimizer {
+    | ----------------- associated items in this implementation
+...
+112 |     pub fn with_selectors(selectors: &[String]) -> Self {
+    |            ^^^^^^^^^^^^^^
+...
+332 |     pub fn extract_critical_css(&self, css: &str, html: &str) -> Result<CssResult, String> {
+    |            ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `minify_css` is never used
+   --> src/css_optimizer.rs:368:8
+    |
+368 | pub fn minify_css(css: &str) -> Result<String, String> {
+    |        ^^^^^^^^^^
+
+warning: fields `html`, `warnings`, and `score` are never read
+  --> src/seo_optimizer.rs:9:9
+   |
+8  | pub struct SeoResult {
+   |            --------- fields in this struct
+9  |     pub html: String,
+   |         ^^^^
+10 |     pub changes: Vec<String>,
+11 |     pub warnings: Vec<String>,
+   |         ^^^^^^^^
+12 |     pub score: u8, // 0-100
+   |         ^^^^^
+
+warning: field `default_og_image` is never read
+  --> src/seo_optimizer.rs:20:9
+   |
+16 | pub struct SeoOptimizer {
+   |            ------------ field in this struct
+...
+20 |     pub default_og_image: Option<String>,
+   |         ^^^^^^^^^^^^^^^^
+
+warning: fields `provider`, `base_url`, `quality`, and `format` are never read
+  --> src/image_optimizer.rs:10:9
+   |
+8  | pub struct CdnConfig {
+   |            --------- fields in this struct
+9  |     /// CDN provider: "cloudflare", "imgix", "bunny", or "custom"
+10 |     pub provider: String,
+   |         ^^^^^^^^
+11 |     /// CDN base URL (e.g., "https://yourdomain.com/cdn-cgi/image" for Cloudflare)
+12 |     pub base_url: Option<String>,
+   |         ^^^^^^^^
+13 |     /// Default quality (1-100)
+14 |     pub quality: u8,
+   |         ^^^^^^^
+15 |     /// Default format (webp, avif, auto)
+16 |     pub format: String,
+   |         ^^^^^^
+   |
+   = note: `CdnConfig` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: fields `webp_candidates`, `missing_dimensions`, `missing_lazy`, and `images_rewritten` are never read
+  --> src/image_optimizer.rs:33:9
+   |
+31 | pub struct ImageResult {
+   |            ----------- fields in this struct
+32 |     pub optimizations: Vec<String>,
+33 |     pub webp_candidates: usize,
+   |         ^^^^^^^^^^^^^^^
+34 |     pub missing_dimensions: usize,
+   |         ^^^^^^^^^^^^^^^^^^
+35 |     pub missing_lazy: usize,
+   |         ^^^^^^^^^^^^
+36 |     pub images_rewritten: usize,
+   |         ^^^^^^^^^^^^^^^^
+
+warning: function `rewrite_images_for_cdn` is never used
+  --> src/image_optimizer.rs:40:8
+   |
+40 | pub fn rewrite_images_for_cdn(html: &mut String, site_url: &str, cdn_config: &CdnConfig) -> usize {
+   |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `should_rewrite_image` is never used
+   --> src/image_optimizer.rs:104:4
+    |
+104 | fn should_rewrite_image(url: &str, site_url: &str) -> bool {
+    |    ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `generate_cdn_url` is never used
+   --> src/image_optimizer.rs:136:4
+    |
+136 | fn generate_cdn_url(original_url: &str, site_url: &str, config: &CdnConfig) -> String {
+    |    ^^^^^^^^^^^^^^^^
+
+warning: function `suggest_webp_conversion` is never used
+   --> src/image_optimizer.rs:234:8
+    |
+234 | pub fn suggest_webp_conversion(html: &str) -> Vec<String> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `suggest_responsive_images` is never used
+   --> src/image_optimizer.rs:277:8
+    |
+277 | pub fn suggest_responsive_images(html: &str) -> Vec<String> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `add_dimension_hints` is never used
+   --> src/image_optimizer.rs:304:8
+    |
+304 | pub fn add_dimension_hints(html: &mut String) -> usize {
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `extract_href` is never used
+   --> src/resource_optimizer.rs:103:4
+    |
+103 | fn extract_href(tag: &str) -> Option<String> {
+    |    ^^^^^^^^^^^^
+
+warning: function `extract_src` is never used
+   --> src/resource_optimizer.rs:108:4
+    |
+108 | fn extract_src(tag: &str) -> Option<String> {
+    |    ^^^^^^^^^^^
+
+warning: function `extract_attribute` is never used
+   --> src/resource_optimizer.rs:113:4
+    |
+113 | fn extract_attribute(tag: &str, attr_name: &str) -> Option<String> {
+    |    ^^^^^^^^^^^^^^^^^
+
+warning: variant `Optimization` is never constructed
+  --> src/error.rs:15:5
+   |
+11 | pub enum AppError {
+   |          -------- variant in this enum
+...
+15 |     Optimization(String),
+   |     ^^^^^^^^^^^^
+   |
+   = note: `AppError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: `htmlwordpress-api` (bin "htmlwordpress-api") generated 31 warnings (run `cargo fix --bin "htmlwordpress-api"` to apply 9 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.49s
+     Running `target/debug/htmlwordpress-api`
+[2m2025-12-19T09:13:34.063950Z[0m [32m INFO[0m [2mhtmlwordpress_api[0m[2m:[0m Starting HTMLWordPress API on 0.0.0.0:3000
+[2m2025-12-19T09:13:34.065367Z[0m [32m INFO[0m [2mhtmlwordpress_api[0m[2m:[0m Server listening on http://0.0.0.0:3000

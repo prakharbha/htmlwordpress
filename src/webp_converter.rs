@@ -359,7 +359,7 @@ fn should_skip_image(url: &str) -> bool {
 /// Rewrite HTML to use local WebP paths
 pub fn rewrite_html_with_webp(html: &mut String, images: &[ConvertedImageResponse], upload_base_url: &str) {
     for image in images {
-        let webp_url = format!("{}/htmlwp/images/{}", upload_base_url.trim_end_matches('/'), image.webp_filename);
+        let webp_url = format!("{}/images/{}", upload_base_url.trim_end_matches('/'), image.webp_filename);
         
         // Replace old URL with new WebP URL
         *html = html.replace(&image.original_url, &webp_url);

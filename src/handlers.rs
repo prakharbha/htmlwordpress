@@ -192,7 +192,7 @@ pub async fn optimize(
         
         if !webp_result.images.is_empty() {
             // Rewrite HTML with placeholder paths (WordPress will replace with actual paths)
-            let upload_base = format!("{}/wp-content/uploads", req.url.trim_end_matches('/'));
+            let upload_base = ".".to_string();
             crate::webp_converter::rewrite_html_with_webp(&mut result.html, &webp_result.images, &upload_base);
             
             result.optimizations.push(format!(
@@ -231,7 +231,7 @@ pub async fn optimize(
         
         if !res_result.css_files.is_empty() || !res_result.js_files.is_empty() {
             // Rewrite HTML with local paths
-            let upload_base = format!("{}/wp-content/uploads", req.url.trim_end_matches('/'));
+            let upload_base = ".".to_string();
             crate::resource_optimizer::rewrite_html_with_optimized_resources(&mut result.html, &res_result, &upload_base);
             
             result.optimizations.push(format!(

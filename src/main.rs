@@ -1,16 +1,17 @@
 //! HTMLWordPress API Server
 //! High-performance WordPress optimization service
 
-mod config;
-mod handlers;
-mod optimizer;
-mod css_optimizer;
-mod seo_optimizer;
-mod schema_generator;
-mod image_optimizer;
-mod webp_converter;
-mod resource_optimizer;
+pub mod config;
+pub mod handlers;
+pub mod optimizer;
+pub mod css_optimizer;
+pub mod seo_optimizer;
+pub mod schema_generator;
+pub mod image_optimizer;
+pub mod webp_converter;
+pub mod resource_optimizer;
 mod error;
+mod test_verification;
 
 use axum::{
     routing::{get, post},
