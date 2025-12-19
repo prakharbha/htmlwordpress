@@ -124,6 +124,14 @@ pub struct ResourcesResponse {
     pub js_files: Vec<JsFileData>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub critical_css: Option<String>,
+    /// Combined CSS - all CSS merged into one file
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub combined_css: Option<String>,
+    /// Combined JS - all JS merged into one file
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub combined_js: Option<String>,
+    pub combined_css_filename: String,
+    pub combined_js_filename: String,
     pub total_css_savings_kb: f32,
     pub total_js_savings_kb: f32,
 }
@@ -254,6 +262,10 @@ pub async fn optimize(
                     reduction_percent: f.reduction_percent,
                 }).collect(),
                 critical_css: res_result.critical_css,
+                combined_css: res_result.combined_css,
+                combined_js: res_result.combined_js,
+                combined_css_filename: res_result.combined_css_filename,
+                combined_js_filename: res_result.combined_js_filename,
                 total_css_savings_kb: res_result.total_css_savings_kb,
                 total_js_savings_kb: res_result.total_js_savings_kb,
             })

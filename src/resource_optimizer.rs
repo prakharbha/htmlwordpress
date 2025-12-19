@@ -14,6 +14,12 @@ pub struct OptimizedResources {
     pub css_files: Vec<OptimizedCssFile>,
     pub js_files: Vec<OptimizedJsFile>,
     pub critical_css: Option<String>,
+    /// Combined CSS - all CSS merged into one file
+    pub combined_css: Option<String>,
+    /// Combined JS - all JS merged into one file
+    pub combined_js: Option<String>,
+    pub combined_css_filename: String,
+    pub combined_js_filename: String,
     pub total_css_savings_kb: f32,
     pub total_js_savings_kb: f32,
 }
@@ -395,6 +401,20 @@ pub async fn optimize_external_resources(html: &str, base_url: &str, used_select
         None
     };
     
+    // Generate combined CSS (all CSS merged into one file)
+    let combined_css = if !css_files.is_empty() {
+        Some(css_files.iter().map(|f| f.content.as_str()).collect::<Vec<_>>().join("\n"))
+    } else {
+        None
+    };
+    
+    // Generate combined JS (all JS merged into one file with semicolons for safety)
+    let combined_js = if !js_files.is_empty() {
+        Some(js_files.iter().map(|f| f.content.as_str()).collect::<Vec<_>>().join(";\n"))
+    } else {
+        None
+    };
+    
     let css_savings = total_css_original.saturating_sub(total_css_optimized) as f32 / 1024.0;
     let js_savings = total_js_original.saturating_sub(total_js_optimized) as f32 / 1024.0;
     
@@ -407,6 +427,10 @@ pub async fn optimize_external_resources(html: &str, base_url: &str, used_select
         css_files,
         js_files,
         critical_css,
+        combined_css,
+        combined_js,
+        combined_css_filename: "styles.min.css".to_string(),
+        combined_js_filename: "scripts.min.js".to_string(),
         total_css_savings_kb: css_savings,
         total_js_savings_kb: js_savings,
     }
