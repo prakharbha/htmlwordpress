@@ -452,20 +452,21 @@ fn should_skip_external(url: &str) -> bool {
 }
 
 /// Rewrite HTML to use local optimized CSS/JS paths
-pub fn rewrite_html_with_optimized_resources(html: &mut String, resources: &OptimizedResources, upload_base_url: &str) {
-    // Rewrite CSS links
-    for css in &resources.css_files {
-        let new_url = format!("{}/htmlwp/css/{}", upload_base_url.trim_end_matches('/'), css.filename);
-        *html = html.replace(&css.original_url, &new_url);
-        tracing::debug!("Resource rewrite: {} -> {}", css.original_url, new_url);
-    }
-    
-    // Rewrite JS sources
-    for js in &resources.js_files {
-        let new_url = format!("{}/htmlwp/js/{}", upload_base_url.trim_end_matches('/'), js.filename);
-        *html = html.replace(&js.original_url, &new_url);
-        tracing::debug!("Resource rewrite: {} -> {}", js.original_url, new_url);
-    }
+pub fn rewrite_html_with_optimized_resources(html: &mut String, resources: &OptimizedResources, _upload_base_url: &str) {
+    // DISABLED: Global css/js folder rewriting causes 404s
+    // CSS files now use per-page combined files instead
+    // 
+    // for css in &resources.css_files {
+    //     let new_url = format!("{}/htmlwp/css/{}", upload_base_url.trim_end_matches('/'), css.filename);
+    //     *html = html.replace(&css.original_url, &new_url);
+    //     tracing::debug!("Resource rewrite: {} -> {}", css.original_url, new_url);
+    // }
+    // 
+    // for js in &resources.js_files {
+    //     let new_url = format!("{}/htmlwp/js/{}", upload_base_url.trim_end_matches('/'), js.filename);
+    //     *html = html.replace(&js.original_url, &new_url);
+    //     tracing::debug!("Resource rewrite: {} -> {}", js.original_url, new_url);
+    // }
     
     // Inject critical CSS if present
     if let Some(critical) = &resources.critical_css {
