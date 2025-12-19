@@ -451,22 +451,79 @@ fn should_skip_external(url: &str) -> bool {
     lower.contains("maxcdn.bootstrapcdn.com")
 }
 
-/// Rewrite HTML to use local optimized CSS/JS paths
+/// Rewrite HTML to use combined CSS/JS files
 pub fn rewrite_html_with_optimized_resources(html: &mut String, resources: &OptimizedResources, _upload_base_url: &str) {
-    // DISABLED: Global css/js folder rewriting causes 404s
-    // CSS files now use per-page combined files instead
-    // 
-    // for css in &resources.css_files {
-    //     let new_url = format!("{}/htmlwp/css/{}", upload_base_url.trim_end_matches('/'), css.filename);
-    //     *html = html.replace(&css.original_url, &new_url);
-    //     tracing::debug!("Resource rewrite: {} -> {}", css.original_url, new_url);
-    // }
-    // 
-    // for js in &resources.js_files {
-    //     let new_url = format!("{}/htmlwp/js/{}", upload_base_url.trim_end_matches('/'), js.filename);
-    //     *html = html.replace(&js.original_url, &new_url);
-    //     tracing::debug!("Resource rewrite: {} -> {}", js.original_url, new_url);
-    // }
+    // Track if we've added the combined CSS link
+    let mut combined_css_added = false;
+    let mut combined_js_added = false;
+    
+    // Remove individual CSS links and replace with combined file
+    // We only process CSS files that were successfully downloaded (in css_files)
+    if resources.combined_css.is_some() && !resources.css_files.is_empty() {
+        for css in &resources.css_files {
+            // Find and remove the link tag for this CSS file
+            // Look for patterns like: <link ... href="original_url" ...>
+            if let Some(start) = find_link_tag_start(html, &css.original_url) {
+                if let Some(end) = html[start..].find('>') {
+                    let tag_end = start + end + 1; // +1 to include the '>'
+                    
+                    // If we haven't added combined CSS yet, replace first tag with combined
+                    // Use non-blocking pattern: media="print" with onload to switch to "all"
+                    // Critical CSS (inlined) handles above-the-fold, this loads rest async
+                    if !combined_css_added {
+                        let combined_link = concat!(
+                            "<link rel=\"stylesheet\" href=\"./styles.min.css\" ",
+                            "id=\"htmlwp-combined-css\" media=\"print\" ",
+                            "onload=\"this.media='all'\">"
+                        );
+                        html.replace_range(start..tag_end, &combined_link);
+                        combined_css_added = true;
+                        tracing::debug!("Replaced CSS with combined: {}", css.original_url);
+                    } else {
+                        // Remove subsequent CSS tags entirely
+                        html.replace_range(start..tag_end, "");
+                        tracing::debug!("Removed CSS: {}", css.original_url);
+                    }
+                }
+            }
+        }
+    }
+    
+    // Remove individual JS scripts and replace with combined file
+    if resources.combined_js.is_some() && !resources.js_files.is_empty() {
+        for js in &resources.js_files {
+            // Find and remove the script tag for this JS file
+            if let Some(start) = find_script_tag_start(html, &js.original_url) {
+                // Find end of script tag - could be self-closing or have </script>
+                if let Some(close_pos) = html[start..].find("</script>") {
+                    let tag_end = start + close_pos + 9; // +9 for "</script>"
+                    
+                    if !combined_js_added {
+                        let combined_script = format!(
+                            "<script src=\"./scripts.min.js\" id=\"htmlwp-combined-js\"></script>"
+                        );
+                        html.replace_range(start..tag_end, &combined_script);
+                        combined_js_added = true;
+                        tracing::debug!("Replaced JS with combined: {}", js.original_url);
+                    } else {
+                        html.replace_range(start..tag_end, "");
+                        tracing::debug!("Removed JS: {}", js.original_url);
+                    }
+                } else if let Some(end) = html[start..].find("/>") {
+                    let tag_end = start + end + 2;
+                    if !combined_js_added {
+                        let combined_script = format!(
+                            "<script src=\"./scripts.min.js\" id=\"htmlwp-combined-js\"></script>"
+                        );
+                        html.replace_range(start..tag_end, &combined_script);
+                        combined_js_added = true;
+                    } else {
+                        html.replace_range(start..tag_end, "");
+                    }
+                }
+            }
+        }
+    }
     
     // Inject critical CSS if present
     if let Some(critical) = &resources.critical_css {
@@ -479,6 +536,47 @@ pub fn rewrite_html_with_optimized_resources(html: &mut String, resources: &Opti
             }
         }
     }
+    
+    tracing::info!(
+        "HTML rewrite complete: CSS combined={}, JS combined={}",
+        combined_css_added, combined_js_added
+    );
+}
+
+/// Find the start position of a <link> tag containing the given URL
+fn find_link_tag_start(html: &str, url: &str) -> Option<usize> {
+    let lower_html = html.to_lowercase();
+    let lower_url = url.to_lowercase();
+    
+    // Look for href="url" or href='url'
+    for pattern in [format!("href=\"{}\"", lower_url), format!("href='{}'", lower_url)] {
+        if let Some(href_pos) = lower_html.find(&pattern) {
+            // Search backwards from href to find <link
+            let before = &lower_html[..href_pos];
+            if let Some(link_rel_pos) = before.rfind("<link") {
+                return Some(link_rel_pos);
+            }
+        }
+    }
+    None
+}
+
+/// Find the start position of a <script> tag containing the given URL  
+fn find_script_tag_start(html: &str, url: &str) -> Option<usize> {
+    let lower_html = html.to_lowercase();
+    let lower_url = url.to_lowercase();
+    
+    // Look for src="url" or src='url'
+    for pattern in [format!("src=\"{}\"", lower_url), format!("src='{}'", lower_url)] {
+        if let Some(src_pos) = lower_html.find(&pattern) {
+            // Search backwards from src to find <script
+            let before = &lower_html[..src_pos];
+            if let Some(script_pos) = before.rfind("<script") {
+                return Some(script_pos);
+            }
+        }
+    }
+    None
 }
 
 #[cfg(test)]
