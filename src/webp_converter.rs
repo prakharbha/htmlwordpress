@@ -391,7 +391,7 @@ mod tests {
 
     #[test]
     fn test_generate_filename() {
-        let filename = generate_filename("/uploads/test.jpg");
+        let filename = generate_filename("/uploads/test.jpg", "webp");
         assert!(filename.ends_with(".webp"));
         assert!(filename.len() > 10);
     }

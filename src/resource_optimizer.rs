@@ -274,13 +274,30 @@ pub async fn optimize_js_file(url: &str, base_url: &str, minify: bool) -> Result
     })
 }
 
-/// Basic JS minification (Safety Fix: Pass-through)
-/// Original regex-based minifier caused syntax errors with regex literals.
-/// Until we have a proper AST-based parser, efficient minification is unsafe in Rust strings.
+/// Robust JS minification using minify-js (AST-based)
 fn basic_js_minify(js: &str) -> String {
-    // Return original JS to prevent syntax errors reported by users.
-    // "wp is not defined" and "Invalid regular expression" were caused by naive minification.
-    js.to_string()
+    let session = minify_js::Session::new();
+    let mut out = Vec::new();
+    match minify_js::minify(&session, minify_js::TopLevelMode::Global, js.as_bytes(), &mut out) {
+        Ok(_) => {
+            // minify-js output is bytes, convert back to string
+            // It filters out invalid UTF-8 automatically usually, but we check
+            match String::from_utf8(out) {
+                Ok(minified) => {
+                    if minified.len() < js.len() {
+                        minified
+                    } else {
+                        js.to_string()
+                    }
+                }
+                Err(_) => js.to_string()
+            }
+        }
+        Err(e) => {
+            tracing::debug!("JS minification failed (using original): {:?}", e);
+            js.to_string()
+        }
+    }
 }
 
 /// Extract critical CSS (above-the-fold styles)
@@ -548,8 +565,12 @@ fn find_link_tag_start(html: &str, url: &str) -> Option<usize> {
     let lower_html = html.to_lowercase();
     let lower_url = url.to_lowercase();
     
-    // Look for href="url" or href='url'
-    for pattern in [format!("href=\"{}\"", lower_url), format!("href='{}'", lower_url)] {
+    // Look for href="url", href='url', or href=url (unquoted)
+    for pattern in [
+        format!("href=\"{}\"", lower_url), 
+        format!("href='{}'", lower_url),
+        format!("href={}", lower_url)
+    ] {
         if let Some(href_pos) = lower_html.find(&pattern) {
             // Search backwards from href to find <link
             let before = &lower_html[..href_pos];
@@ -566,8 +587,12 @@ fn find_script_tag_start(html: &str, url: &str) -> Option<usize> {
     let lower_html = html.to_lowercase();
     let lower_url = url.to_lowercase();
     
-    // Look for src="url" or src='url'
-    for pattern in [format!("src=\"{}\"", lower_url), format!("src='{}'", lower_url)] {
+    // Look for src="url", src='url', or src=url (unquoted)
+    for pattern in [
+        format!("src=\"{}\"", lower_url), 
+        format!("src='{}'", lower_url),
+        format!("src={}", lower_url)
+    ] {
         if let Some(src_pos) = lower_html.find(&pattern) {
             // Search backwards from src to find <script
             let before = &lower_html[..src_pos];
@@ -597,6 +622,19 @@ mod tests {
         let sources = extract_js_sources(html);
         assert_eq!(sources.len(), 2);
         assert!(sources.contains(&"/app.js".to_string()));
+    }
+
+    #[test]
+    fn test_user_specific_js_case() {
+        let html = r#"<script defer type="text/javascript" src="https://pillarshoteldv.wpenginepowered.com/wp-includes/js/jquery/jquery.min.js?ver=3.7.1" id="jquery-core-js"></script>"#;
+        let url = "https://pillarshoteldv.wpenginepowered.com/wp-includes/js/jquery/jquery.min.js?ver=3.7.1";
+        
+        let sources = extract_js_sources(html);
+        assert_eq!(sources.len(), 1);
+        assert_eq!(sources[0], url);
+        
+        let pos = find_script_tag_start(html, url);
+        assert!(pos.is_some(), "Failed to find script tag position");
     }
 
     #[test]

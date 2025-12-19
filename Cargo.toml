@@ -43,7 +43,11 @@ uuid = { version = "1", features = ["v4"] }
 image = { version = "0.24", default-features = false, features = ["jpeg", "png", "gif", "webp"] }
 
 # HTTP client (for downloading images)
-reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls", "gzip", "brotli"] }
+
+# HTML Minification
+minify-html = "0.15"
+minify-js = "0.5"
 
 # Base64 encoding for image data
 base64 = "0.21"

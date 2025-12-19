@@ -254,75 +254,26 @@ fn add_preconnect_hints(html: &mut String) -> usize {
 }
 
 /// Minify HTML by removing unnecessary whitespace and comments
+/// Minify HTML by removing unnecessary whitespace and comments
 fn minify_html(html: &str) -> String {
-    let mut result = String::with_capacity(html.len());
-    let mut in_pre = false;
-    let mut in_script = false;
-    let mut in_style = false;
-    let mut in_comment = false;
-    let mut last_was_space = false;
+    let mut cfg = minify_html::Cfg::new();
+    cfg.do_not_minify_doctype = true;
+    cfg.ensure_spec_compliant_unquoted_attribute_values = true;
+    cfg.keep_closing_tags = true;
+    cfg.keep_html_and_head_opening_tags = true;
+    cfg.keep_spaces_between_attributes = true;
+    cfg.keep_comments = false;
+    cfg.minify_css = true;
+    cfg.minify_js = true;
+    cfg.remove_bangs = false;
+    cfg.remove_processing_instructions = false;
 
-    let chars: Vec<char> = html.chars().collect();
-    let len = chars.len();
-    let mut i = 0;
-
-    while i < len {
-        // Check for comment start
-        if i + 3 < len && chars[i..i+4].iter().collect::<String>() == "<!--" {
-            in_comment = true;
-            i += 4;
-            continue;
-        }
-
-        // Check for comment end
-        if in_comment {
-            if i + 2 < len && chars[i..i+3].iter().collect::<String>() == "-->" {
-                in_comment = false;
-                i += 3;
-            } else {
-                i += 1;
-            }
-            continue;
-        }
-
-        // Check for tag starts
-        let remaining: String = chars[i..].iter().take(10).collect();
-        let remaining_lower = remaining.to_lowercase();
-
-        if remaining_lower.starts_with("<pre") {
-            in_pre = true;
-        } else if remaining_lower.starts_with("</pre") {
-            in_pre = false;
-        } else if remaining_lower.starts_with("<script") {
-            in_script = true;
-        } else if remaining_lower.starts_with("</script") {
-            in_script = false;
-        } else if remaining_lower.starts_with("<style") {
-            in_style = true;
-        } else if remaining_lower.starts_with("</style") {
-            in_style = false;
-        }
-
-        let c = chars[i];
-
-        // Preserve whitespace in pre, script, style
-        if in_pre || in_script || in_style {
-            result.push(c);
-            last_was_space = false;
-        } else if c.is_whitespace() {
-            if !last_was_space {
-                result.push(' ');
-                last_was_space = true;
-            }
-        } else {
-            result.push(c);
-            last_was_space = false;
-        }
-
-        i += 1;
+    let minified = minify_html::minify(html.as_bytes(), &cfg);
+    
+    match String::from_utf8(minified) {
+        Ok(s) => s,
+        Err(_) => html.to_string(), // Fallback if UTF-8 conversion fails
     }
-
-    result
 }
 
 /// Add lazy loading to images below the fold
